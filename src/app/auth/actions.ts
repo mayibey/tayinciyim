@@ -91,15 +91,22 @@ export async function signUpAction(
     return { ok: false, message: error.message };
   }
 
-  if (data.user) {
-    await supabase.from("profiles").upsert({
-      id: data.user.id,
-      full_name: fullName || email.split("@")[0],
-      display_name: fullName || email.split("@")[0],
-      email,
-      user_type: "bireysel",
-      officer_group: "none",
-    });
+  if (!data.user) {
+    return {
+      ok: false,
+      message: "Kayıt tamamlanamadı. Lütfen tekrar deneyin.",
+    };
+  }
+
+  // Profil satırı handle_new_user trigger'ı tarafından oluşturulur.
+
+  if (!data.session) {
+    // E-posta onayı açık: oturum yok, kullanıcı maili onaylamalı.
+    return {
+      ok: true,
+      message:
+        "Kaydınız alındı. Giriş yapabilmek için e-postanıza gönderilen onay bağlantısına tıklayın.",
+    };
   }
 
   revalidatePath("/", "layout");

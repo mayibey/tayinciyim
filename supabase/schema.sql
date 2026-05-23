@@ -1,4 +1,4 @@
--- tayinciyim.com — Supabase şema (beta)
+-- tayinciyim.net — Supabase şema (beta)
 -- Supabase SQL Editor'da çalıştırın.
 
 -- extensions
@@ -182,28 +182,110 @@ alter table public.transactions enable row level security;
 alter table public.city_guides enable row level security;
 alter table public.location_insights enable row level security;
 
--- profiles: public read
+-- profiles: ham tablo — yalnızca kendi satırı (PII dahil)
 drop policy if exists "profiles_public_read" on public.profiles;
-create policy "profiles_public_read" on public.profiles
-  for select using (true);
+drop policy if exists "profiles_self_read" on public.profiles;
+create policy "profiles_self_read" on public.profiles
+  for select to authenticated
+  using (auth.uid() = id);
 
--- listings: approved public read
+-- Public profil: public_profiles view (PII yok) — grant aşağıda
+create or replace view public.public_profiles as
+select
+  id,
+  display_name,
+  avatar_url,
+  user_type,
+  officer_group,
+  city,
+  district,
+  bio,
+  trust_score,
+  rating_average,
+  rating_count,
+  completed_transaction_count,
+  active_listing_count,
+  report_count,
+  response_rate,
+  average_response_time,
+  badges,
+  is_verified,
+  is_phone_verified,
+  is_email_verified,
+  is_identity_verified,
+  is_carrier_verified,
+  created_at
+from public.profiles;
+
+comment on view public.public_profiles is
+  'PII içermez (phone, whatsapp, email, full_name yok). Public UI bu view üzerinden okur.';
+
+grant select on public.public_profiles to anon, authenticated;
+
+-- listings: approved public read (tam satır — uygulama PII maskeleyerek sunar)
+-- TODO: Production — public_listings view ile contact_name/whatsapp hariç okuma
 drop policy if exists "listings_approved_read" on public.listings;
 create policy "listings_approved_read" on public.listings
   for select using (status = 'approved');
 
--- listings: insert — seçenek A: herkese açık (misafir ilan)
+-- Misafir ilan: yalnızca user_id null, pending, manipülasyon alanları kilitli
 drop policy if exists "listings_public_insert" on public.listings;
-create policy "listings_public_insert" on public.listings
-  for insert with check (true);
+drop policy if exists "listings_guest_insert" on public.listings;
+create policy "listings_guest_insert" on public.listings
+  for insert to anon
+  with check (
+    user_id is null
+    and status = 'pending'
+    and coalesce(is_featured, false) = false
+    and coalesce(report_count, 0) = 0
+  );
 
--- listings: insert — seçenek B (yorum): yalnızca authenticated
--- drop policy if exists "listings_auth_insert" on public.listings;
--- create policy "listings_auth_insert" on public.listings
---   for insert to authenticated with check (auth.uid() = user_id);
+-- Oturum açmış kullanıcı: yalnızca kendi user_id ile
+drop policy if exists "listings_auth_insert" on public.listings;
+create policy "listings_auth_insert" on public.listings
+  for insert to authenticated
+  with check (
+    user_id = auth.uid()
+    and status = 'pending'
+    and coalesce(is_featured, false) = false
+    and coalesce(report_count, 0) = 0
+  );
 
--- TODO: admin role based policy — update/delete listings
+-- Public update/delete yok — admin durum güncellemesi service role server action ile
+-- TODO: admin role based policy — update/delete listings (RLS + app_metadata.role)
 -- TODO: moderation role
+
+-- Önerilen public projection (PII yok) — uygulama katmanı maskeleme ile birlikte kullanın
+create or replace view public.public_listings as
+select
+  id,
+  user_id,
+  category,
+  title,
+  description,
+  city_from,
+  district_from,
+  city_to,
+  district_to,
+  available_date,
+  available_time_start,
+  available_time_end,
+  price,
+  details,
+  images,
+  status,
+  is_urgent,
+  is_featured,
+  report_count,
+  created_at,
+  updated_at
+from public.listings
+where status = 'approved';
+
+comment on view public.public_listings is
+  'PII içermez (contact_name, whatsapp yok). İletişim revealListingContactAction ile açılır.';
+
+grant select on public.public_listings to anon, authenticated;
 
 drop policy if exists "reports_public_insert" on public.reports;
 create policy "reports_public_insert" on public.reports
@@ -228,3 +310,56 @@ create policy "location_insights_public_read" on public.location_insights
 drop policy if exists "transactions_public_read" on public.transactions;
 create policy "transactions_public_read" on public.transactions
   for select using (true);
+
+-- —— handle_new_user: auth.users → public.profiles otomatik satır ——
+-- Trigger SECURITY DEFINER ile RLS bypass eder; profiles INSERT policy gerektirmez.
+-- options.data->>'full_name' (signUp) + auth.users.email kullanılır.
+-- user_type / officer_group şema default'larına ('bireysel' / 'none') bırakılır.
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_full_name text;
+  v_display text;
+begin
+  v_full_name := nullif(new.raw_user_meta_data->>'full_name', '');
+  v_display := coalesce(
+    v_full_name,
+    split_part(coalesce(new.email, ''), '@', 1),
+    'Kullanıcı'
+  );
+
+  insert into public.profiles (id, email, full_name, display_name)
+  values (new.id, new.email, v_full_name, v_display)
+  on conflict (id) do nothing;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- —— Backfill: hayalet kullanıcılar (auth.users var, profiles satırı yok) ——
+-- schema.sql her rerun'da idempotent; ON CONFLICT ile çift insert yok.
+
+insert into public.profiles (id, email, full_name, display_name)
+select
+  u.id,
+  u.email,
+  nullif(u.raw_user_meta_data->>'full_name', ''),
+  coalesce(
+    nullif(u.raw_user_meta_data->>'full_name', ''),
+    split_part(coalesce(u.email, ''), '@', 1),
+    'Kullanıcı'
+  )
+from auth.users u
+left join public.profiles p on p.id = u.id
+where p.id is null
+on conflict (id) do nothing;

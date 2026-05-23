@@ -3,7 +3,11 @@ import { applyListingFilters, type SearchParams } from "@/lib/filters/apply-filt
 import { attachUserIdToListing } from "@/lib/users/resolve-user";
 import { DEFAULT_MOCK_USER_ID } from "@/lib/mock-data/users";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { createSupabaseAnonServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
+import {
+  createSupabaseAnonServerClient,
+  createSupabaseServerClient,
+  createSupabaseServiceClient,
+} from "@/lib/supabase/server";
 import {
   mapListingRowToListing,
   mapListingToInsertPayload,
@@ -11,7 +15,13 @@ import {
   type ListingRow,
 } from "@/lib/data/mappers/listing-mapper";
 import { getCurrentUserId } from "@/lib/auth/current-user";
+import { getPublicProfilesByIds } from "@/lib/data/users-repository";
+import { profileToAuthorSnapshot } from "@/lib/users/profile-to-author";
 import { ListingRepositoryError, LISTING_SAVE_ERROR } from "@/lib/data/repository-error";
+import {
+  getAdminListingView,
+  getPublicListingView,
+} from "@/lib/privacy/pii";
 import type { CategorySlug, CreateListingInput, Listing, ListingStatus } from "@/types/listing";
 
 const listingStore: Listing[] = structuredClone(MOCK_LISTINGS).map(attachUserIdToListing);
@@ -27,8 +37,15 @@ export interface GetListingsOptions {
   category?: CategorySlug;
   status?: ListingStatus;
   searchParams?: SearchParams;
-  /** Admin: tüm durumlar */
+  /** Admin: tüm durumlar + tam PII */
   includeAllStatuses?: boolean;
+}
+
+function applyListingVisibility(listing: Listing, options?: GetListingsOptions): Listing {
+  if (options?.includeAllStatuses) {
+    return getAdminListingView(listing);
+  }
+  return getPublicListingView(listing);
 }
 
 export interface ReportListingInput {
@@ -105,15 +122,42 @@ function supabaseReadClient(includeAllStatuses?: boolean) {
   return createSupabaseAnonServerClient();
 }
 
+function publicListingTable(includeAllStatuses?: boolean): string {
+  return includeAllStatuses ? "listings" : "public_listings";
+}
+
+async function enrichListingsWithAuthors(listings: Listing[]): Promise<Listing[]> {
+  if (!hasSupabaseEnv()) return listings;
+
+  const userIds = [
+    ...new Set(
+      listings.map((l) => l.userId).filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  if (userIds.length === 0) return listings;
+
+  const profiles = await getPublicProfilesByIds(userIds);
+  return listings.map((listing) => {
+    if (!listing.userId) return listing;
+    const profile = profiles.get(listing.userId);
+    if (!profile) return listing;
+    return {
+      ...listing,
+      authorSnapshot: profileToAuthorSnapshot(profile),
+    };
+  });
+}
+
 async function supabaseGetListings(options?: GetListingsOptions): Promise<Listing[]> {
   const client = supabaseReadClient(options?.includeAllStatuses);
   if (!client) return mockGetListings(options);
 
-  let query = client.from("listings").select("*").order("created_at", { ascending: false });
+  const table = publicListingTable(options?.includeAllStatuses);
+  let query = client.from(table).select("*").order("created_at", { ascending: false });
 
   if (options?.status) {
     query = query.eq("status", options.status);
-  } else if (!options?.includeAllStatuses) {
+  } else if (!options?.includeAllStatuses && table === "listings") {
     query = query.eq("status", "approved");
   }
 
@@ -129,7 +173,13 @@ async function supabaseGetListings(options?: GetListingsOptions): Promise<Listin
     return [];
   }
 
-  let items = (data as ListingRow[]).map(mapListingRowToListing);
+  let items = (data as ListingRow[]).map(mapListingRowToListing).map((l) =>
+    applyListingVisibility(l, options),
+  );
+
+  if (!options?.includeAllStatuses) {
+    items = await enrichListingsWithAuthors(items);
+  }
 
   if (options?.searchParams && !options.category) {
     const cat = options.searchParams.kategori as CategorySlug | undefined;
@@ -145,7 +195,11 @@ async function supabaseGetListingById(id: string): Promise<Listing | null> {
   const client = createSupabaseAnonServerClient();
   if (!client) return mockGetListingById(id);
 
-  const { data, error } = await client.from("listings").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await client
+    .from("public_listings")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("[listings] getById:", error.message);
@@ -153,15 +207,23 @@ async function supabaseGetListingById(id: string): Promise<Listing | null> {
     return null;
   }
   if (!data) return null;
-  return mapListingRowToListing(data as ListingRow);
+
+  let listing = applyListingVisibility(mapListingRowToListing(data as ListingRow));
+  const [enriched] = await enrichListingsWithAuthors([listing]);
+  listing = enriched ?? listing;
+  return listing;
 }
 
 async function supabaseCreateListing(input: CreateListingInput): Promise<Listing> {
-  const userId = (await getCurrentUserId()) ?? input.userId ?? null;
-  const payload = mapListingToInsertPayload(input, userId);
+  const serverUserId = (await getCurrentUserId()) ?? null;
+  const payload = mapListingToInsertPayload(input, serverUserId);
 
-  const client = createSupabaseAnonServerClient();
-  if (!client) return mockCreateListing({ ...input, userId: userId ?? undefined });
+  // Oturumlu kullanıcı: cookie-aware client → RLS listings_auth_insert (auth.uid() = user_id).
+  // Misafir: anon client → RLS listings_guest_insert (user_id IS NULL).
+  const client = serverUserId
+    ? await createSupabaseServerClient()
+    : createSupabaseAnonServerClient();
+  if (!client) return mockCreateListing({ ...input, userId: serverUserId ?? undefined });
 
   const { data, error } = await client
     .from("listings")
@@ -179,7 +241,7 @@ async function supabaseCreateListing(input: CreateListingInput): Promise<Listing
         : LISTING_SAVE_ERROR,
     );
   }
-  return mapListingRowToListing(data as ListingRow);
+  return applyListingVisibility(mapListingRowToListing(data as ListingRow));
 }
 
 async function supabaseUpdateListingImages(
@@ -201,7 +263,7 @@ async function supabaseUpdateListingImages(
     console.error("[listings] update images:", error?.message);
     return null;
   }
-  return mapListingRowToListing(data as ListingRow);
+  return getAdminListingView(mapListingRowToListing(data as ListingRow));
 }
 
 async function supabaseUpdateListingStatus(
@@ -225,7 +287,28 @@ async function supabaseUpdateListingStatus(
     }
     throw new ListingRepositoryError("İlan durumu güncellenemedi.");
   }
-  return mapListingRowToListing(data as ListingRow);
+  return getAdminListingView(mapListingRowToListing(data as ListingRow));
+}
+
+/** Onaylı ilanın WhatsApp — yalnızca contact reveal action */
+export async function getListingContactWhatsApp(id: string): Promise<string | null> {
+  if (!hasSupabaseEnv()) {
+    const found = allMockListings().find((l) => l.id === id && l.status === "approved");
+    return found?.whatsapp ?? null;
+  }
+
+  const service = createSupabaseServiceClient();
+  if (!service) return null;
+
+  const { data, error } = await service
+    .from("listings")
+    .select("whatsapp")
+    .eq("id", id)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  if (error || !data?.whatsapp) return null;
+  return String(data.whatsapp);
 }
 
 async function supabaseReportListing(input: ReportListingInput): Promise<boolean> {
@@ -315,11 +398,16 @@ export async function getListingsByUserId(userId: string): Promise<Listing[]> {
     const client = createSupabaseAnonServerClient();
     if (client) {
       const { data } = await client
-        .from("listings")
+        .from("public_listings")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
-      if (data) return (data as ListingRow[]).map(mapListingRowToListing);
+      if (data) {
+        const items = (data as ListingRow[]).map(mapListingRowToListing).map((l) =>
+          getPublicListingView(l),
+        );
+        return enrichListingsWithAuthors(items);
+      }
     }
   }
   return allMockListings().filter((l) => l.userId === userId);
