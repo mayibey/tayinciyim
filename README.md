@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# tayinciyim.com
 
-## Getting Started
+Kamu tayini ve yer değiştirme sürecinde **ev devri**, **eşya devri**, **nakliye**, **şehir soruları** ve **hizmet verenler** için ilan platformu (MVP / production beta).
 
-First, run the development server:
+## Ne işe yarar?
+
+- Kategorilere göre ilan listeleme ve detay
+- İlan verme (form + görsel yükleme)
+- Şehir rehberi ve güvenlik uyarıları
+- Admin paneli (onay / red)
+- Supabase yokken **mock veri** ile demo; env varken **Supabase** repository
+
+## Teknoloji
+
+| Katman | Teknoloji |
+|--------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Dil | TypeScript |
+| Stil | Tailwind CSS v4 |
+| Veri / Auth | Supabase (opsiyonel) |
+| Deploy | Vercel |
+
+## Önemli route'lar
+
+| Rota | Açıklama |
+|------|----------|
+| `/` | Ana sayfa |
+| `/ilanlar` | İlan listesi |
+| `/ilanlar/[id]` | İlan detay |
+| `/ilan-ver` | Yeni ilan |
+| `/sehir-rehberi` | Şehir rehberi |
+| `/giris` · `/kayit` | Supabase Auth |
+| `/admin` | Admin panel (korumalı) |
+| `/sistem-durumu` | Deploy smoke test (secret göstermez) |
+
+## Lokal çalıştırma
 
 ```bash
+npm install
+cp .env.example .env.local   # opsiyonel — yoksa mock mod
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tarayıcı: [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Mock mod (`.env.local` yok)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Mock ilanlar listelenir
+- Admin production dışında mock uyarısı; production’da kapalı
+- Build ve lint env olmadan çalışır
 
-## Learn More
+### Supabase mod
 
-To learn more about Next.js, take a look at the following resources:
+`.env.local` içinde en az:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ADMIN_EMAILS=sizin@email.com
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Kurulum: [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
 
-## Deploy on Vercel
+## Ortam değişkenleri
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Değişken | Zorunlu | Açıklama |
+|----------|---------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase mod | Proje URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase mod | Anon key (istemci + RLS) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase mod | **Yalnız sunucu** — upload, admin |
+| `NEXT_PUBLIC_SITE_URL` | Önerilir | SEO, sitemap, OG |
+| `ADMIN_EMAILS` | Production admin | Virgülle ayrılmış e-postalar |
+| `CAPTCHA_SITE_KEY` / `CAPTCHA_SECRET_KEY` | Hayır | Yoksa demo pass |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Şablon: [.env.example](./.env.example)
+
+## Deploy (Vercel)
+
+1. Adımlar: [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) — **Hızlı Yayın Sırası** bölümü
+2. Deploy sonrası: `/sistem-durumu` kontrolü
+3. Admin: `/giris?next=/admin` (e-posta `ADMIN_EMAILS` içinde olmalı)
+
+```bash
+npm run lint
+npm run build
+```
+
+## Güvenlik notları
+
+- `SUPABASE_SERVICE_ROLE_KEY` **asla** `NEXT_PUBLIC_` ile eklenmemeli
+- Service role yalnızca `src/lib/supabase/server.ts` ve sunucu modülleri
+- Admin: middleware + `requireAdmin()` + `ADMIN_EMAILS`
+- Formlar: honeypot, rate limit (in-memory), sanitize
+- Production TODO: dağıtık rate limit (Upstash), CAPTCHA sağlayıcı, sıkı CSP
+
+## Geliştirme komutları
+
+```bash
+npm run dev      # geliştirme
+npm run lint     # ESLint
+npm run build    # production build
+npm run start    # production sunucu
+```
+
+## Dokümantasyon
+
+- [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) — SQL, storage, seed, admin
+- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) — Vercel beta checklist
