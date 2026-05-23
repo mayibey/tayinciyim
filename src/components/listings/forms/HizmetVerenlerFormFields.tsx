@@ -1,4 +1,5 @@
 import { FormSection } from "@/components/listings/forms/FormSection";
+import { TrCitiesDatalist } from "@/components/location/TrCitiesDatalist";
 import { inputClassName, labelClassName } from "@/components/ui/form-styles";
 import {
   SERVICE_PRICE_TYPE_OPTIONS,
@@ -61,7 +62,7 @@ export function HizmetVerenlerFormFields() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={labelClassName}>Ana hizmet şehri *</label>
-            <input name="cityFrom" required className={inputClassName} placeholder="Ankara" />
+            <input name="cityFrom" required list="tr-cities" className={inputClassName} placeholder="Ankara" />
           </div>
           <div>
             <label className={labelClassName}>Ana ilçe</label>
@@ -85,6 +86,7 @@ export function HizmetVerenlerFormFields() {
             />
           </div>
         </div>
+        <TrCitiesDatalist />
       </FormSection>
 
       <FormSection title="Fiyatlandırma">

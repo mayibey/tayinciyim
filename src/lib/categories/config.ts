@@ -1,6 +1,7 @@
 import type { CategorySlug } from "@/types/listing";
 
 export type FilterFieldType =
+  | "city"
   | "text"
   | "select"
   | "checkbox"
@@ -50,7 +51,7 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
       "furnished",
     ],
     filterFields: [
-      { key: "sehir", label: "Şehir", type: "text", placeholder: "Ankara" },
+      { key: "sehir", label: "Şehir", type: "city", placeholder: "Ankara" },
       { key: "ilce", label: "İlçe", type: "text", placeholder: "Çankaya" },
       { key: "kiraMin", label: "Min kira", type: "text", placeholder: "10000" },
       { key: "kiraMax", label: "Max kira", type: "text", placeholder: "25000" },
@@ -110,7 +111,7 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
       "listingIntent",
     ],
     filterFields: [
-      { key: "sehir", label: "Şehir", type: "text", placeholder: "İzmir" },
+      { key: "sehir", label: "Şehir", type: "city", placeholder: "İzmir" },
       {
         key: "ilanAmaci",
         label: "İlan amacı",
@@ -176,8 +177,8 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
       "loadType",
     ],
     filterFields: [
-      { key: "nereden", label: "Nereden", type: "text", placeholder: "Ankara" },
-      { key: "nereye", label: "Nereye", type: "text", placeholder: "İzmir" },
+      { key: "nereden", label: "Nereden", type: "city", placeholder: "Ankara" },
+      { key: "nereye", label: "Nereye", type: "city", placeholder: "İzmir" },
       { key: "tarih", label: "Tarih", type: "text", placeholder: "2026-06" },
       {
         key: "yukTipi",
@@ -214,8 +215,8 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
       "departureDate",
     ],
     filterFields: [
-      { key: "nereden", label: "Nereden", type: "text" },
-      { key: "nereye", label: "Nereye", type: "text" },
+      { key: "nereden", label: "Nereden", type: "city" },
+      { key: "nereye", label: "Nereye", type: "city" },
       { key: "tarih", label: "Tarih", type: "text" },
       {
         key: "aracTipi",
@@ -253,7 +254,7 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
       "officerGroup",
     ],
     filterFields: [
-      { key: "sehir", label: "Şehir", type: "text" },
+      { key: "sehir", label: "Şehir", type: "city" },
       { key: "ilce", label: "İlçe", type: "text" },
       {
         key: "soruTipi",
@@ -330,7 +331,7 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
           { value: "diger", label: "Diğer" },
         ],
       },
-      { key: "sehir", label: "Şehir", type: "text", placeholder: "Ankara" },
+      { key: "sehir", label: "Şehir", type: "city", placeholder: "Ankara" },
       { key: "ilce", label: "İlçe", type: "text", placeholder: "Çankaya" },
       { key: "ayniGun", label: "Aynı gün hizmet", type: "checkbox" },
       { key: "haftaSonu", label: "Hafta sonu çalışır", type: "checkbox" },

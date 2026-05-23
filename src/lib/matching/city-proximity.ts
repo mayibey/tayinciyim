@@ -1,43 +1,23 @@
+import { TR_CITIES, type TrRegion } from "@/lib/constants/tr-cities";
+
 /**
- * Şehir yakınlık — mock bölge grafiği.
+ * Şehir yakınlık — bölge grafiği. 81 il TR_CITIES'ten türetiliyor.
  * Gelecek: Google Maps / Mapbox mesafe matrisi ile değiştirilebilir.
  */
 
-const CITY_REGION: Record<string, string> = {
-  istanbul: "marmara",
-  bursa: "marmara",
-  kocaeli: "marmara",
-  tekirdag: "marmara",
-  sakarya: "marmara",
-  izmir: "ege",
-  aydin: "ege",
-  manisa: "ege",
-  denizli: "ege",
-  mugla: "ege",
-  antalya: "akdeniz",
-  mersin: "akdeniz",
-  adana: "akdeniz",
-  hatay: "akdeniz",
-  ankara: "icanadolu",
-  konya: "icanadolu",
-  kayseri: "icanadolu",
-  eskisehir: "icanadolu",
-  samsun: "karadeniz",
-  trabzon: "karadeniz",
-  rize: "karadeniz",
-  ordu: "karadeniz",
-  erzurum: "dogu",
-  van: "dogu",
-  agri: "dogu",
-  diyarbakir: "guneydogu",
-  mardin: "guneydogu",
-  siirt: "guneydogu",
-  sanliurfa: "guneydogu",
-  gaziantep: "guneydogu",
-  malatya: "dogu",
-  elazig: "dogu",
-  batman: "guneydogu",
+const REGION_SLUG: Record<TrRegion, string> = {
+  Marmara: "marmara",
+  Ege: "ege",
+  Akdeniz: "akdeniz",
+  "İç Anadolu": "icanadolu",
+  Karadeniz: "karadeniz",
+  "Doğu Anadolu": "dogu",
+  "Güneydoğu Anadolu": "guneydogu",
 };
+
+const CITY_REGION: Record<string, string> = Object.fromEntries(
+  TR_CITIES.map((c) => [c.slug, REGION_SLUG[c.region]]),
+);
 
 /** Komşu bölgeler — güzergâh üstü / yakın rota için */
 const REGION_NEIGHBORS: Record<string, string[]> = {
