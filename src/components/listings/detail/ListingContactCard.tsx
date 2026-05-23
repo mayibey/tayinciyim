@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { revealListingContactAction } from "@/app/ilanlar/[id]/contact/actions";
 import { FORM_STARTED_FIELD, HONEYPOT_FIELD } from "@/lib/security/honeypot";
 import { AuthorAvatar } from "@/components/listings/AuthorAvatar";
 import { SecurityNotice } from "@/components/listings/SecurityNotice";
@@ -14,7 +15,7 @@ import { useToast } from "@/components/ui/toast/ToastProvider";
 import { USER_TYPE_LABELS } from "@/lib/constants/user-labels";
 import { reportListingAction } from "@/app/ilanlar/actions";
 import { SECURITY_MESSAGES } from "@/lib/constants/site";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
+import { maskContactName } from "@/lib/privacy/pii";
 import type { Listing } from "@/types/listing";
 import type { ListingAuthorSnapshot } from "@/types/user-profile";
 
@@ -27,12 +28,23 @@ export function ListingContactCard({ listing, author }: ListingContactCardProps)
   const { toast } = useToast();
   const [reportOpen, setReportOpen] = useState(false);
   const [reportStartedAt] = useState(() => String(Date.now()));
+  const [contactLoading, setContactLoading] = useState(false);
 
-  const phone = listing.whatsapp;
-  const waUrl = buildWhatsAppUrl(
-    phone,
-    `Merhaba, tayinciyim.com üzerindeki "${listing.title}" ilanı hakkında bilgi almak istiyorum.`,
-  );
+  const displayContactName = maskContactName(listing.contactName);
+
+  const handleWhatsAppReveal = async () => {
+    setContactLoading(true);
+    try {
+      const result = await revealListingContactAction(listing.id);
+      if (!result.ok) {
+        toast(result.message, "error");
+        return;
+      }
+      window.open(result.whatsappUrl, "_blank", "noopener,noreferrer");
+    } finally {
+      setContactLoading(false);
+    }
+  };
 
   const handleReport = async () => {
     setReportOpen(false);
@@ -43,8 +55,8 @@ export function ListingContactCard({ listing, author }: ListingContactCardProps)
       listing.id,
       "diger",
       "Kullanıcı ilan detayından şikayet etti.",
-      listing.contactName,
-      listing.whatsapp,
+      undefined,
+      undefined,
       securityFd,
     );
     toast(result.message, result.ok ? "success" : "error");
@@ -64,9 +76,7 @@ export function ListingContactCard({ listing, author }: ListingContactCardProps)
               size="lg"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold text-navy-900">
-                {listing.contactName}
-              </p>
+              <p className="truncate font-semibold text-navy-900">{displayContactName}</p>
               <p className="text-xs font-medium text-muted">
                 {USER_TYPE_LABELS[author.userType]}
               </p>
@@ -102,21 +112,15 @@ export function ListingContactCard({ listing, author }: ListingContactCardProps)
           </div>
         )}
 
-        {waUrl ? (
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-4 py-3.5 text-sm font-semibold text-white shadow-soft transition-smooth hover:brightness-105 active:scale-[0.98]"
-          >
-            <WhatsAppIcon />
-            WhatsApp ile iletişim
-          </a>
-        ) : (
-          <p className="rounded-2xl bg-cream-100 px-4 py-3 text-center text-sm text-muted">
-            İletişim bilgisi paylaşılmamış
-          </p>
-        )}
+        <Button
+          type="button"
+          disabled={contactLoading}
+          onClick={handleWhatsAppReveal}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-4 py-3.5 text-sm font-semibold text-white shadow-soft hover:brightness-105"
+        >
+          <WhatsAppIcon />
+          {contactLoading ? "Hazırlanıyor..." : "WhatsApp ile iletişim"}
+        </Button>
 
         <SecurityNotice message={SECURITY_MESSAGES.detail} />
 

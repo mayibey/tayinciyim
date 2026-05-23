@@ -1,4 +1,4 @@
-# Supabase Kurulum — tayinciyim.com
+# Supabase Kurulum — tayinciyim.net
 
 ## 1. Supabase projesi
 
@@ -23,6 +23,15 @@ ADMIN_EMAILS=sizin@email.com
 ## 3. Veritabanı şeması
 
 SQL Editor → New query → `supabase/schema.sql` içeriğini yapıştırıp **Run**.
+
+**Güvenlik güncellemesi (Sprint 2):** Şemayı her deploy öncesi/sonrası güncel dosyayla yeniden çalıştırın.
+
+- Eski `profiles_public_read` policy kaldırılır → `profiles_self_read` (yalnızca kendi satırı).
+- `public_profiles` view oluşur (PII yok).
+- `public_listings` view + `grant select` (PII yok).
+- Listings insert policy’leri (K1) korunur.
+
+Detay: [SECURITY_NOTES.md](./SECURITY_NOTES.md).
 
 ## 4. Storage
 
@@ -87,6 +96,8 @@ Project Settings → Environment Variables:
 Deploy sonrası: `https://alanadiniz.com/sistem-durumu`
 
 ## 8. Production güvenlik notları
+
+Ayrıntılı açıklama: [SECURITY_NOTES.md](./SECURITY_NOTES.md) (RLS, PII, contact reveal, mock kapama).
 
 - [ ] Admin paneli role-based koruma (`TODO` kod içinde)
 - [ ] `listings` insert politikasını authenticated'a daraltma (schema yorumları)

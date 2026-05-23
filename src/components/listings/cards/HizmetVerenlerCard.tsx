@@ -3,7 +3,6 @@ import { ListingCardShell } from "./ListingCardShell";
 import { Badge } from "@/components/ui/Badge";
 import { SERVICE_TYPE_LABELS } from "@/lib/constants/service-labels";
 import { formatServiceLocation, formatServicePrice } from "@/lib/service-format";
-import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import { resolveListingAuthor } from "@/lib/users/resolve-user";
 import type { Listing } from "@/types/listing";
 
@@ -17,11 +16,6 @@ export function HizmetVerenlerCard({
   const priceLabel = formatServicePrice(listing);
   const location = formatServiceLocation(listing);
   const displayName = d.isCompany && d.companyName ? d.companyName : listing.contactName;
-  const waUrl =
-    buildWhatsAppUrl(
-      listing.whatsapp,
-      `Merhaba, tayinciyim.com üzerindeki "${listing.title}" hizmet ilanı hakkında bilgi almak istiyorum.`,
-    ) ?? "#";
 
   return (
     <ListingCardShell
@@ -71,15 +65,6 @@ export function HizmetVerenlerCard({
               </p>
             </div>
           </div>
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="relative z-10 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-2.5 text-sm font-semibold text-white transition-smooth hover:brightness-105"
-          >
-            WhatsApp
-          </a>
           <Link
             href={`/ilanlar/${listing.id}`}
             className="relative z-10 text-center text-xs font-semibold text-accent hover:underline"

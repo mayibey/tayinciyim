@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CapacityBar } from "@/components/listings/CapacityBar";
 import { getScoreBadgeClass } from "@/lib/matching/route-matching";
+import { SITE_NAME } from "@/lib/constants/site";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import {
   LOAD_TYPE_LABELS,
@@ -30,8 +31,8 @@ export function RouteMatchCard({ suggestion, sourceTitle }: RouteMatchCardProps)
   const routeTag = ROUTE_TYPE_LABELS[match.routeType] ?? "Rota önerisi";
 
   const waMessage = sourceTitle
-    ? `Merhaba, tayinciyim.com üzerinde "${sourceTitle}" ilanı için %${match.totalScore} uyumlu eşleşme olarak gördüm. Bilgi alabilir miyim?`
-    : `Merhaba, tayinciyim.com üzerindeki "${listing.title}" ilanı hakkında bilgi almak istiyorum.`;
+    ? `Merhaba, ${SITE_NAME} üzerinde "${sourceTitle}" ilanı için %${match.totalScore} uyumlu eşleşme olarak gördüm. Bilgi alabilir miyim?`
+    : `Merhaba, ${SITE_NAME} üzerindeki "${listing.title}" ilanı hakkında bilgi almak istiyorum.`;
 
   const waUrl = buildWhatsAppUrl(listing.whatsapp, waMessage);
 

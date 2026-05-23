@@ -12,7 +12,7 @@ import { CategoryBadge } from "@/components/listings/CategoryBadge";
 import { ListingStatusBadge } from "@/components/ui/Badge";
 import { getCategoryBySlug } from "@/lib/categories";
 import { getListingImages } from "@/lib/listing-images";
-import { resolveListingAuthor } from "@/lib/users/resolve-user";
+import { resolveListingAuthorAsync } from "@/lib/users/resolve-user-server";
 import { formatDate } from "@/lib/utils";
 import { getListingLocationFrom, getListingRoute } from "@/types/listing";
 import type { Listing } from "@/types/listing";
@@ -22,7 +22,7 @@ export async function ListingDetailView({ listing }: { listing: Listing }) {
   const images = getListingImages(listing);
   const route = getListingRoute(listing);
   const location = getListingLocationFrom(listing);
-  const author = resolveListingAuthor(listing);
+  const author = await resolveListingAuthorAsync(listing);
   const allApproved =
     listing.category === "ev-devri"
       ? await getListings({ status: PUBLIC_LISTING_STATUS })

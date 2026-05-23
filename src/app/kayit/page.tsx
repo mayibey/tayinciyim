@@ -1,12 +1,13 @@
 import { AuthForm } from "@/components/auth/AuthForm";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { signUpAction } from "@/app/auth/actions";
+import { SITE_NAME } from "@/lib/constants/site";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata = buildPageMetadata({
   title: "Kayıt ol",
-  description: "tayinciyim.com ücretsiz hesap oluşturun.",
+  description: `${SITE_NAME} ücretsiz hesap oluşturun.`,
   path: "/kayit",
   noIndex: true,
 });

@@ -10,8 +10,8 @@ import { SecurityNotice } from "@/components/listings/SecurityNotice";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
   getActiveListingsForUser,
-  getReviewsForUser,
-  getTransactionsForUser,
+  getReviewsForUserProfile,
+  getTransactionsForUserProfile,
   getUserProfileById,
 } from "@/lib/data/users";
 import { getCarrierProfile } from "@/lib/users/resolve-user";
@@ -43,8 +43,8 @@ export default async function ProfilPage({ params }: PageProps) {
 
   const [listings, reviews, transactions] = await Promise.all([
     getActiveListingsForUser(id),
-    getReviewsForUser(id),
-    getTransactionsForUser(id),
+    getReviewsForUserProfile(id),
+    getTransactionsForUserProfile(id),
   ]);
 
   const carrier = user.userType === "nakliyeci" ? getCarrierProfile(id) : null;

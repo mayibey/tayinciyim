@@ -98,12 +98,17 @@ export function mapListingRowToListing(row: ListingRow): Listing {
   return { ...base, category, details } as Listing;
 }
 
+/** Sunucu kontrollü insert — client userId/status/featured manipülasyonu kabul edilmez */
 export function mapListingToInsertPayload(
   input: CreateListingInput,
-  userId?: string | null,
+  serverUserId: string | null,
 ): ListingInsertPayload {
+  if (!isCategorySlug(input.category)) {
+    throw new Error("Geçersiz kategori");
+  }
+
   return {
-    user_id: userId ?? input.userId ?? null,
+    user_id: serverUserId,
     category: input.category,
     title: input.title,
     description: input.description,
@@ -117,12 +122,25 @@ export function mapListingToInsertPayload(
     available_time_start: input.availableTimeStart ?? null,
     available_time_end: input.availableTimeEnd ?? null,
     price: input.price ?? null,
-    details: input.details as unknown as Record<string, unknown>,
+    details: sanitizeListingDetails(input.details),
     images: input.images ?? [],
     status: "pending",
-    is_urgent: input.isUrgent ?? false,
-    is_featured: input.isFeatured ?? false,
+    is_urgent: Boolean(input.isUrgent),
+    is_featured: false,
   };
+}
+
+function sanitizeListingDetails(details: ListingDetails): Record<string, unknown> {
+  const plain = JSON.parse(JSON.stringify(details)) as Record<string, unknown>;
+  delete plain.whatsapp;
+  delete plain.email;
+  delete plain.phone;
+  delete plain.contactName;
+  delete plain.status;
+  delete plain.reportCount;
+  delete plain.isFeatured;
+  delete plain.trustScore;
+  return plain;
 }
 
 export function mapListingToUpdatePayload(partial: {

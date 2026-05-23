@@ -1,6 +1,6 @@
 # Production Beta — Deploy Kontrol Listesi
 
-tayinciyim.com MVP’yi Vercel’de beta yayınına almadan önce bu listeyi sırayla tamamlayın.
+tayinciyim.net MVP’yi Vercel’de beta yayınına almadan önce bu listeyi sırayla tamamlayın.
 
 ## Hızlı yayın sırası
 
@@ -76,7 +76,7 @@ Project → Settings → Environment Variables (Production + Preview):
 | `NEXT_PUBLIC_SUPABASE_URL` | Evet | |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Evet | |
 | `SUPABASE_SERVICE_ROLE_KEY` | Evet | Sunucu only |
-| `NEXT_PUBLIC_SITE_URL` | Evet | `https://tayinciyim.com` |
+| `NEXT_PUBLIC_SITE_URL` | Evet | `https://tayinciyim.net` |
 | `ADMIN_EMAILS` | Evet | Virgülle ayrılmış admin e-postaları |
 | `CAPTCHA_SITE_KEY` | Hayır | Yoksa demo pass |
 | `CAPTCHA_SECRET_KEY` | Hayır | |
@@ -101,7 +101,7 @@ Vercel:
 
 ## 6. Domain
 
-- [ ] Vercel → Domains → `tayinciyim.com` + `www` (isteğe bağlı redirect)
+- [ ] Vercel → Domains → `tayinciyim.net` + `www` (isteğe bağlı redirect)
 - [ ] `NEXT_PUBLIC_SITE_URL` production domain ile eşleşiyor
 - [ ] SSL aktif
 

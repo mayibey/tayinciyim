@@ -19,6 +19,11 @@ export function ReviewList({ reviews }: ReviewListProps) {
     <ul className="space-y-4">
       {reviews.map((review) => {
         const author = getUserById(review.fromUserId);
+        const displayName =
+          review.fromUserDisplayName ??
+          author?.displayName ??
+          "Doğrulanmış kullanıcı";
+        const avatarUrl = review.fromUserAvatarUrl ?? author?.avatarUrl;
         return (
           <li
             key={review.id}
@@ -26,14 +31,14 @@ export function ReviewList({ reviews }: ReviewListProps) {
           >
             <div className="flex items-start gap-3">
               <AuthorAvatar
-                name={author?.displayName ?? "Kullanıcı"}
-                imageUrl={author?.avatarUrl}
+                name={displayName}
+                imageUrl={avatarUrl}
                 size="sm"
               />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-navy-900">
-                    {author?.displayName ?? "Kullanıcı"}
+                    {displayName}
                   </p>
                   <time className="text-xs text-muted" dateTime={review.createdAt}>
                     {formatRelativeDate(review.createdAt)}

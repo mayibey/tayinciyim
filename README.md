@@ -1,4 +1,4 @@
-# tayinciyim.com
+# tayinciyim.net
 
 Kamu tayini ve yer değiştirme sürecinde **ev devri**, **eşya devri**, **nakliye**, **şehir soruları** ve **hizmet verenler** için ilan platformu (MVP / production beta).
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SITE_NAME } from "@/lib/constants/site";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { getSystemHealthReport } from "@/lib/system/health";
 
@@ -6,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = buildPageMetadata({
   title: "Sistem durumu",
-  description: "tayinciyim.com beta yayın kontrolü — yapılandırma özeti (gizli anahtarlar gösterilmez).",
+  description: `${SITE_NAME} beta yayın kontrolü — yapılandırma özeti (gizli anahtarlar gösterilmez).`,
   path: "/sistem-durumu",
   noIndex: true,
 });

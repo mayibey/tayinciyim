@@ -1,6 +1,6 @@
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getUserById } from "@/lib/users/resolve-user";
+import { getCurrentUserProfile } from "@/lib/data/users-repository";
 import type { UserProfile } from "@/types/user-profile";
 
 // TODO: Supabase Auth — tam oturum senkronizasyonu
@@ -38,8 +38,7 @@ export async function getCurrentProfile(): Promise<UserProfile | null> {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  // TODO: profiles tablosundan Supabase select
-  return getUserById(user.id);
+  return getCurrentUserProfile();
 }
 
 /** @deprecated requireAdmin / getCurrentAdmin kullanın */

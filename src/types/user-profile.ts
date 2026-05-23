@@ -120,6 +120,9 @@ export interface Review {
   reviewTags: ReviewTag[];
   createdAt: string;
   isVerifiedTransaction: boolean;
+  /** Server tarafında public_profiles ile doldurulur */
+  fromUserDisplayName?: string;
+  fromUserAvatarUrl?: string;
 }
 
 /** İlan kartı / detay için çözümlenmiş yazar özeti */

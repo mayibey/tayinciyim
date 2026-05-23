@@ -35,7 +35,7 @@ export function Header() {
           </span>
           <span className="min-w-0 leading-tight">
             <span className="block truncate text-base font-bold tracking-tight text-navy-900 sm:text-lg">
-              tayinciyim<span className="text-accent">.com</span>
+              tayinciyim<span className="text-accent">.net</span>
             </span>
             <span className="hidden text-[11px] font-medium text-muted sm:block">
               Kamu tayini platformu

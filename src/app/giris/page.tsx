@@ -1,12 +1,13 @@
 import { AuthForm } from "@/components/auth/AuthForm";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { signInAction } from "@/app/auth/actions";
+import { SITE_NAME } from "@/lib/constants/site";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata = buildPageMetadata({
   title: "Giriş",
-  description: "tayinciyim.com hesabınıza giriş yapın.",
+  description: `${SITE_NAME} hesabınıza giriş yapın.`,
   path: "/giris",
   noIndex: true,
 });

@@ -30,7 +30,7 @@ export function Footer() {
                 T
               </span>
               <span className="text-lg font-bold text-white">
-                tayinciyim<span className="text-accent">.com</span>
+                tayinciyim<span className="text-accent">.net</span>
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream-200/80">
@@ -68,7 +68,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-8 text-sm text-cream-200/60 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} tayinciyim.com — Tüm hakları saklıdır.</p>
+          <p>© {new Date().getFullYear()} tayinciyim.net — Tüm hakları saklıdır.</p>
           <p>MVP · Mock veri modu</p>
         </div>
       </div>

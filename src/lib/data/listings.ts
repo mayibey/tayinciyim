@@ -4,6 +4,7 @@
 export {
   getListings,
   getListingById,
+  getListingContactWhatsApp,
   createListing,
   updateListingStatus,
   updateListingImages,

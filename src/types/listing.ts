@@ -6,6 +6,7 @@ import type {
   NakliyeciAracDetails,
   SehirSorusuDetails,
 } from "./listing-fields";
+import type { ListingAuthorSnapshot } from "./user-profile";
 
 export type CategorySlug =
   | "ev-devri"
@@ -46,6 +47,8 @@ export interface ListingBase {
   isUrgent: boolean;
   isFeatured: boolean;
   reportCount: number;
+  /** Supabase public_listings + batch author fetch — kartlarda sync resolve yerine */
+  authorSnapshot?: ListingAuthorSnapshot;
 }
 
 export type Listing =

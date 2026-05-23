@@ -1,36 +1,57 @@
-import { MOCK_REVIEWS } from "@/lib/mock-data/reviews";
-import { MOCK_TRANSACTIONS } from "@/lib/mock-data/transactions";
-import { getUserById } from "@/lib/users/resolve-user";
 import { getListings } from "@/lib/data/listings";
+import { getReviewsForUser } from "@/lib/data/reviews-repository";
+import { getTransactionsForUser } from "@/lib/data/transactions-repository";
+import {
+  getPublicProfilesByIds,
+  getPublicUserProfileById,
+  NEUTRAL_AUTHOR_LABEL,
+} from "@/lib/data/users-repository";
 import { PUBLIC_LISTING_STATUS } from "@/lib/constants/listing-status";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { resolveUserIdForListing } from "@/lib/users/resolve-user";
+import { getUserById } from "@/lib/users/resolve-user";
 import type { Listing } from "@/types/listing";
 import type { Review, TransactionHistory, UserProfile } from "@/types/user-profile";
 
-// TODO: Supabase Auth — session user
-// TODO: moderation queue for reports
-
 export async function getUserProfileById(id: string): Promise<UserProfile | null> {
-  return getUserById(id);
+  return getPublicUserProfileById(id);
 }
 
-export async function getReviewsForUser(userId: string): Promise<Review[]> {
-  // TODO: verified transaction review filter in production
-  return MOCK_REVIEWS.filter((r) => r.toUserId === userId).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+export async function getReviewsForUserProfile(userId: string): Promise<Review[]> {
+  const reviews = await getReviewsForUser(userId);
+  if (reviews.length === 0) return reviews;
+
+  const authorIds = reviews.map((r) => r.fromUserId);
+  const profiles = await getPublicProfilesByIds(authorIds);
+
+  return reviews.map((review) => {
+    const profile = profiles.get(review.fromUserId);
+    if (profile) {
+      return {
+        ...review,
+        fromUserDisplayName: profile.displayName,
+        fromUserAvatarUrl: profile.avatarUrl,
+      };
+    }
+    if (hasSupabaseEnv()) {
+      return {
+        ...review,
+        fromUserDisplayName: NEUTRAL_AUTHOR_LABEL,
+      };
+    }
+    const mockAuthor = getUserById(review.fromUserId);
+    return {
+      ...review,
+      fromUserDisplayName: mockAuthor?.displayName ?? NEUTRAL_AUTHOR_LABEL,
+      fromUserAvatarUrl: mockAuthor?.avatarUrl,
+    };
+  });
 }
 
-export async function getTransactionsForUser(
+export async function getTransactionsForUserProfile(
   userId: string,
 ): Promise<TransactionHistory[]> {
-  return MOCK_TRANSACTIONS.filter(
-    (t) => t.fromUserId === userId || t.toUserId === userId,
-  ).sort(
-    (a, b) =>
-      new Date(b.completedAt ?? 0).getTime() -
-      new Date(a.completedAt ?? 0).getTime(),
-  );
+  return getTransactionsForUser(userId);
 }
 
 export async function getActiveListingsForUser(userId: string): Promise<Listing[]> {
@@ -39,5 +60,8 @@ export async function getActiveListingsForUser(userId: string): Promise<Listing[
 }
 
 export async function getReviewAuthorName(userId: string): Promise<string> {
-  return getUserById(userId)?.displayName ?? "Kullanıcı";
+  const profile = await getPublicUserProfileById(userId);
+  if (profile) return profile.displayName;
+  if (hasSupabaseEnv()) return NEUTRAL_AUTHOR_LABEL;
+  return getUserById(userId)?.displayName ?? NEUTRAL_AUTHOR_LABEL;
 }

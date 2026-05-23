@@ -5,6 +5,7 @@ import { CityGuideSearch } from "@/components/location/CityGuideSearch";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SecurityNotice } from "@/components/listings/SecurityNotice";
 import { searchCityGuides } from "@/lib/location/location-insights";
+import { SITE_NAME } from "@/lib/constants/site";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata = buildPageMetadata({
@@ -48,7 +49,7 @@ export default async function SehirRehberiPage({ searchParams }: PageProps) {
         </ul>
         <div className="mt-4">
           <SecurityNotice
-            message="tayinciyim.com ödeme aracılığı değildir. Şüpheli ilanları bildirin."
+            message={`${SITE_NAME} ödeme aracılığı değildir. Şüpheli ilanları bildirin.`}
             variant="warning"
           />
         </div>

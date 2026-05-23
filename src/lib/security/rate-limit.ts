@@ -65,4 +65,5 @@ export const RATE_LIMITS = {
   createListing: { limit: 5, windowMs: RATE_WINDOWS.tenMinutes },
   reportListing: { limit: 10, windowMs: RATE_WINDOWS.tenMinutes },
   auth: { limit: 10, windowMs: RATE_WINDOWS.tenMinutes },
+  revealContact: { limit: 15, windowMs: RATE_WINDOWS.tenMinutes },
 } as const;
