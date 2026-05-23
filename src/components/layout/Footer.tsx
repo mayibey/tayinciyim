@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 
 const footerLinks = {
   Platform: [
@@ -69,7 +70,7 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-8 text-sm text-cream-200/60 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} tayinciyim.net — Tüm hakları saklıdır.</p>
-          <p>MVP · Mock veri modu</p>
+          <p>{hasSupabaseEnv() ? "MVP · Beta" : "MVP · Mock veri modu"}</p>
         </div>
       </div>
     </footer>
