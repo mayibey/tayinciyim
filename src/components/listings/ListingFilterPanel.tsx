@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CategoryIcon } from "@/components/icons/CategoryIcon";
-import { TrCitiesDatalist } from "@/components/location/TrCitiesDatalist";
+import { CityAutocomplete } from "@/components/location/CityAutocomplete";
 import { CATEGORIES, getCategoryConfig } from "@/lib/categories";
 import type { CategorySlug } from "@/types/listing";
 
@@ -54,7 +54,6 @@ export function ListingFilterPanel({
         {config && (
           <form method="get" className="space-y-4 border-t border-[var(--border)] pt-5">
             <input type="hidden" name="kategori" value={activeCategory} />
-            <TrCitiesDatalist />
             <p className="text-xs font-semibold uppercase tracking-wider text-muted">
               {config.label} filtreleri
             </p>
@@ -126,11 +125,9 @@ function FilterField({
     return (
       <div>
         <label className="mb-1 block text-xs font-semibold text-navy-800">{field.label}</label>
-        <input
-          type="text"
+        <CityAutocomplete
           name={field.key}
-          defaultValue={defaultValue ?? ""}
-          list="tr-cities"
+          defaultValue={defaultValue}
           placeholder={field.placeholder}
           className="w-full rounded-xl border border-navy-900/10 bg-cream-50/80 px-3 py-2 text-sm"
         />

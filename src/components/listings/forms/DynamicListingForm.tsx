@@ -12,7 +12,7 @@ import { CATEGORIES, getCategoryConfig } from "@/lib/categories";
 import { listingRequiresPhotos } from "@/lib/listing-images";
 import { SECURITY_MESSAGES } from "@/lib/constants/site";
 import { HoneypotFields } from "@/components/security/HoneypotFields";
-import { TrCitiesDatalist } from "@/components/location/TrCitiesDatalist";
+import { CityAutocomplete } from "@/components/location/CityAutocomplete";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/toast/ToastProvider";
 import { inputClassName, labelClassName } from "@/components/ui/form-styles";
@@ -122,7 +122,7 @@ export function DynamicListingForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={labelClassName}>{config?.requiresRoute ? "Nereden (şehir) *" : "Şehir *"}</label>
-            <input name="cityFrom" required list="tr-cities" className={inputClassName} />
+            <CityAutocomplete name="cityFrom" required className={inputClassName} />
           </div>
           <div>
             <label className={labelClassName}>İlçe {category === "ev-devri" ? "*" : ""}</label>
@@ -132,7 +132,7 @@ export function DynamicListingForm() {
             <>
               <div>
                 <label className={labelClassName}>Nereye (şehir) *</label>
-                <input name="cityTo" required list="tr-cities" className={inputClassName} />
+                <CityAutocomplete name="cityTo" required className={inputClassName} />
               </div>
               <div>
                 <label className={labelClassName}>Varış ilçesi</label>
@@ -141,7 +141,6 @@ export function DynamicListingForm() {
             </>
           )}
         </div>
-        <TrCitiesDatalist />
       </FormSection>
       )}
 

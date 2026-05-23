@@ -14,7 +14,7 @@ import {
 } from "@/lib/constants/field-labels";
 import { HizmetVerenlerFormFields } from "@/components/listings/forms/HizmetVerenlerFormFields";
 import { SecurityNotice } from "@/components/listings/SecurityNotice";
-import { TrCitiesDatalist } from "@/components/location/TrCitiesDatalist";
+import { CityAutocomplete } from "@/components/location/CityAutocomplete";
 import { FORM_ADDRESS_PRIVACY_WARNING } from "@/lib/constants/location-disclaimer";
 import { inputClassName, labelClassName } from "@/components/ui/form-styles";
 import type { CategorySlug } from "@/types/listing";
@@ -258,7 +258,7 @@ export function CategoryFormFields({ category }: { category: CategorySlug }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={labelClassName}>Hedef şehir *</label>
-              <input name="targetCity" required list="tr-cities" className={inputClassName} />
+              <CityAutocomplete name="targetCity" required className={inputClassName} />
             </div>
             <div>
               <label className={labelClassName}>Hedef ilçe</label>
@@ -282,7 +282,6 @@ export function CategoryFormFields({ category }: { category: CategorySlug }) {
               </select>
             </div>
           </div>
-          <TrCitiesDatalist />
         </FormSection>
       );
   }
