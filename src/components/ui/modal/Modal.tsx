@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/Button";
 
 interface ModalProps {
@@ -27,6 +28,11 @@ export function Modal({
   size = "md",
 }: ModalProps) {
   const titleId = useId();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -41,9 +47,9 @@ export function Modal({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[90] flex items-end justify-center p-4 sm:items-center">
       <button
         type="button"
@@ -75,7 +81,8 @@ export function Modal({
         <div className="text-sm text-navy-800">{children}</div>
         {footer && <div className="mt-6 flex flex-wrap justify-end gap-3">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
