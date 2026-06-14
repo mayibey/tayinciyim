@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AuthNav } from "@/components/auth/AuthNav";
 import { ButtonLink } from "@/components/ui/Button";
+import { SesliOkuButton } from "@/components/reader/SesliOkuButton";
 
 const navLinks = [
   { href: "/ilanlar", label: "İlanlar" },
@@ -64,6 +65,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <SesliOkuButton />
           <AuthNav />
           <ButtonLink href="/ilan-ver" size="sm" className="hidden sm:inline-flex">
             İlan Ver
