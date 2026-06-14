@@ -51,6 +51,10 @@
   --shadow-card-hover: var(--shadow-card-hover);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
